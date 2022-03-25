@@ -1,0 +1,46 @@
+version: '3.9'
+
+networks:
+  monitoring-local:
+
+volumes:
+  influxdb-data:
+  influxdb-config:
+  grafana-data:
+
+services:
+  influxdb:
+    image: influxdb:2.1-alpine
+    networks:
+      - monitoring-local
+    ports:
+      - "${INFLUXDB_HOST_PORT}:8086"
+    volumes:
+      - influxdb-data:/var/lib/influxdb2
+      - influxdb-config:/etc/influxdb2
+    environment:
+      DOCKER_INFLUXDB_INIT_MODE: setup
+      DOCKER_INFLUXDB_INIT_USERNAME: ${INFLUXDB_USERNAME}
+      DOCKER_INFLUXDB_INIT_PASSWORD: ${INFLUXDB_PASSWORD}
+      DOCKER_INFLUXDB_INIT_ORG: ${INFLUXDB_ORG}
+      DOCKER_INFLUXDB_INIT_BUCKET: ${INFLUXDB_BUCKET}
+      DOCKER_INFLUXDB_INIT_ADMIN_TOKEN: ${INFLUXDB_TOKEN}
+
+  grafana:
+    image: grafana/grafana-oss
+    depends_on:
+      - influxdb
+    networks:
+      - monitoring-local
+    ports:
+      - "${GRAFANA_HOST_PORT}:3000"
+    volumes:
+      - ./grafana/provisioning/datasources:/etc/grafana/provisioning/datasources
+      - grafana-data:/var/lib/grafana
+    environment:
+      GF_INSTALL_PLUGINS: ${GRAFANA_PLUGINS}
+      GF_SECURITY_ADMIN_USER: ${GRAFANA_USERNAME}
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_PASSWORD}
+      INFLUXDB_TOKEN: ${INFLUXDB_TOKEN}
+      INFLUXDB_ORG: ${INFLUXDB_ORG}
+      INFLUXDB_BUCKET: ${INFLUXDB_BUCKET}
