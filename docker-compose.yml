@@ -44,3 +44,19 @@ services:
       INFLUXDB_TOKEN: ${INFLUXDB_TOKEN}
       INFLUXDB_ORG: ${INFLUXDB_ORG}
       INFLUXDB_BUCKET: ${INFLUXDB_BUCKET}
+
+  telegraf:
+    image: telegraf
+    depends_on:
+      - influxdb
+    networks:
+      - monitoring-local
+    ports:
+      - "${TELEGRAF_STATSD_PORT}:8125/udp"
+    volumes:
+      - $PWD/telegraf/telegraf.conf:/etc/telegraf/telegraf.conf:ro
+    environment:
+      INFLUXDB_HOST_PORT: ${INFLUXDB_HOST_PORT}
+      INFLUXDB_TOKEN: ${INFLUXDB_TOKEN}
+      INFLUXDB_ORG: ${INFLUXDB_ORG}
+      INFLUXDB_BUCKET: ${INFLUXDB_BUCKET}
